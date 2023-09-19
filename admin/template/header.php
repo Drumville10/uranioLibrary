@@ -1,3 +1,13 @@
+<?php
+    session_start();
+    if(!isset($_SESSION['user'])){
+        header("Location: ../index.php");
+    }else{
+        if($_SESSION['user']=="ok"){
+            $userName=$_SESSION["userName"];
+        }
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,9 +29,9 @@
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
                     <a class="nav-link active" aria-current="page" href="#">Administrador</a>
-                    <a class="nav-link" href="#">Inicio</a>
+                    <a class="nav-link" href="<?php echo $url?>/admin/home.php">Inicio</a>
                     <a class="nav-link" href="<?php echo $url?>/admin/sections/products.php">Libros</a>
-                    <a class="nav-link" href="#" >Cerrar</a>
+                    <a class="nav-link" href="<?php echo $url?>/admin/sections/logout.php" >Cerrar</a>
                     <a class="nav-link" href="<?php echo $url?>">Ver Web</a>
                 </div>
             </div>

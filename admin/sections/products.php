@@ -12,14 +12,27 @@
         case "add":
             $querySQL = $conection->prepare("INSERT INTO libros (nombre, imagen) VALUES (:productName, :productImg)");
             $querySQL ->bindParam(':productName',$productName);
-            $querySQL ->bindParam(':productImg',$productImg);
+            $date = new DateTime();
+            $fileName=($productImg!="")?$date->getTimestamp()."_".$_FILES["productImg"]["name"]:"img.png";
+            $tmpImg = $_FILES["productImg"]["tmp_name"];
+            if ($tmpImg!=""):
+                move_uploaded_file($tmpImg,"../../img/".$fileName);
+            endif;
+            $querySQL ->bindParam(':productImg',$fileName);
             $querySQL ->execute();
             break;
         case "edit":
             if ($productImg != ""){
                 $querySQL = $conection->prepare("UPDATE libros SET nombre = :name, imagen = :img WHERE id = :id");
                 $querySQL ->bindParam(':name',$productName);
-                $querySQL ->bindParam(':img',$productImg);
+                $date = new DateTime();
+                $fileName=($productImg!="")?$date->getTimestamp()."_".$_FILES["productImg"]["name"]:"img.png";
+                $tmpImg = $_FILES["productImg"]["tmp_name"];
+                if ($tmpImg!=""):
+                    move_uploaded_file($tmpImg,"../../img/".$fileName);
+                endif;
+
+                $querySQL ->bindParam(':img',$fileName);
                 $querySQL ->bindParam(':id',$txtID);
                 $querySQL ->execute();
             }else{
@@ -30,7 +43,9 @@
             };
             break;
         case "cancel":
-            echo "presionar botón cancelar";
+            $txtID ="";
+            $productName="";
+            $productImg="";
             break;
         case "select":
             $querySQL = $conection->prepare("SELECT * FROM libros WHERE id =:id");
@@ -45,6 +60,17 @@
             $querySQL = $conection->prepare("DELETE FROM libros WHERE id = :id");
             $querySQL ->bindParam(':id',$txtID);
             $querySQL -> execute();
+            $book=$querySQL->fetch(PDO::FETCH_LAZY);
+
+            if(isset($book["imagen"])&&($book["imagen"]!="img.png")){
+                if(file_exists("../../img/".$book["imagen"])){
+                    unlink("../../img/".$book["imagen"]);
+                }
+            }
+            
+            $txtID ="";
+            $productName="";
+            $productImg="";
             break;
     }
 
@@ -54,7 +80,7 @@
 ?>
 <div class="container">
     <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="card mt-5">
                 <div class="card-header">
                     Datos de Libro
@@ -63,14 +89,21 @@
                     <form method="POST" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="">ID:</label>
-                            <input type="text" class="form-control" value="<?php echo $txtID?>" name="txtId" id="txtId" placeolder="ID">
+                            <input type="text" class="form-control" value="<?php if(isset($txtID)) {echo $txtID;} ?>" name="txtId" id="txtId" placeholder="ID" required readonly>
                         </div>
                         <div class="form-group">
                             <label for="">Nombre</label>
-                            <input type="text" class="form-control" value="<?php echo $txtName?>" name="productName" id="productName" placeholder="Nombre de prodcuto">
+                            <input type="text" class="form-control" value="<?php if(isset($txtName)) {echo $txtName;}?>" name="productName" id="productName" placeholder="Nombre de prodcuto">
                         </div>
                         <div class="form-group">
-                            <label for="">Imagen</label>
+                            <label for="">Imagen:</label>
+                            <?php
+                                if($txtImg!=""):
+                            ?>
+                                <div class="my-3 d-flex justify-content-center">
+                                    <img src="../../img/<?php echo $book['imagen'];?>" alt="" style="width:90px;">
+                                </div>
+                            <?php endif;?>
                             <input type="file" class="form-control" value="<?php echo $txtImg?>" name="productImg" id="productImg" placeholder="Nombre de prodcuto">
                         </div>
                         <div class="btn-group mt-2" role="group" aria-label="">
@@ -82,13 +115,14 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-7">
+        <div class="col-md-8">
             <table class="table table table-hover table-sm mt-5">
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">ID</th>
-                        <th scope="col">Nombre</th>
                         <th scope="col">Imagen</th>
+                        <th scope="col">Imagen Nombre</th>
+                        <th scope="col">Nombre</th>
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
@@ -97,8 +131,11 @@
                     <tr>
                         
                             <th><?php echo $book['id'];?></th>
-                            <td><?php echo $book['nombre'];?></td>
+                            <td>
+                                <img src="../../img/<?php echo $book['imagen'];?>" alt="" style="width:50px;">
+                            </td>
                             <td><?php echo $book['imagen'];?></td>
+                            <td><?php echo $book['nombre'];?></td>
                             <td>
                             <form method="POST">
                                 <input type="text" name="txtId" value="<?php echo $book['id']?>" hidden>

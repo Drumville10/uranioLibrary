@@ -1,6 +1,14 @@
 <?php
+    session_start();
     if ($_POST){
-        header('Location: home.php');
+        if(($_POST["user"]=="jorge")&&($_POST["password"]=="123456")){
+            $_SESSION['user']="ok";
+            $_SESSION['userName']="Jorge";
+            header('Location: home.php');
+        }else{
+            $message = "El ususario o contraseña es incorrecto";
+        }
+        
     }
 ?>
 
@@ -20,6 +28,11 @@
                     <div class="card-header">
                         <h1 class="card-title">Login</h1>
                     </div>
+                    <?php if(isset($message)):?>
+                        <div class="alert alert-dangermx-2" role="alert">
+                            <?php echo $message;?>
+                        </div>
+                    <?php endif;?>
                     <div class="card-body">
                         <form method="POST">
                             <div class="mb-3">
